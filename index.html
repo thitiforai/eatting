@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สูตรอาหารไทย - Thai Recipe App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .selector-section {
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .recipe-display {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        .recipe-display.show {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .recipe-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .recipe-header h2 {
+            margin-bottom: 5px;
+        }
+        .recipe-image {
+            width: 100%;
+            max-width: 400px;
+            height: 250px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+        .recipe-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .ingredients {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .ingredients li {
+            margin-bottom: 8px;
+            color: #333;
+            list-style-position: inside;
+        }
+        .steps {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .steps ol {
+            margin-left: 20px;
+        }
+        .steps li {
+            margin-bottom: 10px;
+            color: #333;
+            line-height: 1.5;
+        }
+        .comments-section {
+            margin-top: 30px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .comments-section h3 {
+            margin-top: 0;
+        }
+        .comment-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        .comment-display {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #ffc107;
+        }
+        .vulnerability-note {
+            background: #fff3cd;
+            border: 2px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #333;
+        }
+        .vulnerability-note strong {
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍛 สูตรอาหารไทยแสนอร่อย</h1>
+        <p class="subtitle">Thai Recipes - Select a dish to see the recipe</p>
+
+        <!-- ========== VULNERABILITY #1: DESIGN REVIEW ========== 
+             NO AUTHENTICATION - Anyone can save recipes without login
+             AWS Security Agent should flag: Missing authentication/authorization
+             ============================================================ -->
+        
+        <div class="selector-section">
+            <label for="recipeSelect">เลือกสูตรอาหาร:</label>
+            <select id="recipeSelect">
+                <option value="">-- เลือกสูตรอาหาร --</option>
+                <option value="padthai">ผัดไทย (Pad Thai)</option>
+                <option value="gaeng">แกงแดง (Red Curry)</option>
+                <option value="somtam">ส้มตำ (Papaya Salad)</option>
+                <option value="larb">ลาบ (Larb)</option>
+                <option value="panang">แกงพะแนง (Panang Curry)</option>
+                <option value="massaman">แกงมัสมั่น (Massaman Curry)</option>
+                <option value="khao">ข้าวเหนียว (Sticky Rice)</option>
+                <option value="satay">สะเต๊ะ (Satay)</option>
+                <option value="tom">ต้มยำกุ้ง (Tom Yum Prawn)</option>
+                <option value="pla">ปลากระพงทอดน้ำปลา (Fried Fish)</option>
+                <option value="salad">สลัดไก่ (Chicken Salad)</option>
+                <option value="pad">ผัดเพื่อเนื่อง (Stir Fry)</option>
+                <option value="kheng">เเขง (Sweet Dessert)</option>
+                <option value="nam">น้ำพริก (Chili Paste)</option>
+            </select>
+        </div>
+
+        <div id="recipeContainer" class="recipe-display">
+            <div class="recipe-header">
+                <h2 id="recipeName"></h2>
+                <p id="recipeDesc"></p>
+            </div>
+
+            <div class="recipe-image" id="recipeImage">📷 รูปจำลอง</div>
+
+            <div class="recipe-content">
+                <div class="section">
+                    <h3>วัตถุดิบ</h3>
+                    <ul class="ingredients" id="ingredientsList"></ul>
+                </div>
+                <div class="section">
+                    <h3>ขั้นตอนการทำ</h3>
+                    <ol class="steps" id="stepsList"></ol>
+                </div>
+            </div>
+
+            <!-- ========== VULNERABILITY #2 & #3: XSS + HARDCODED DATA ========== 
+                 - XSS: User input NOT sanitized when displayed in comment section
+                 - Hardcoded API Key in code
+                 AWS Security Agent should flag: 
+                   1. Unsanitized innerHTML usage (XSS vulnerability)
+                   2. Hardcoded credentials/API key in JavaScript
+                 ================================================================== -->
+
+            <div class="comments-section">
+                <h3>ความเห็นของคุณ (Your Comments)</h3>
+                <input type="text" class="comment-input" id="userComment" placeholder="พิมพ์ความเห็นของคุณที่นี่...">
+                <button onclick="saveComment()">บันทึก (Save)</button>
+                <div id="commentsDisplay"></div>
+            </div>
+        </div>
+
+        <div class="vulnerability-note" id="vulnNote" style="display: none;">
+            <strong>🔴 TEST MODE - ทดสอบช่องโหว่:</strong><br>
+            โปรแกรมนี้มีช่องโหว่ 3 ชนิด (intentional) เพื่อให้ AWS Security Agent ทดสอบ
+        </div>
+    </div>
+
+    <script>
+        // ========== VULNERABILITY #3: HARDCODED SENSITIVE DATA ==========
+        // ⚠️ HARDCODED API KEY - AWS Security Agent should detect this
+        // This is intentional for testing purposes
+        const API_KEY = "sk-1234567890abcdef-secret-key-production"; // HARDCODED SECRET - BAD PRACTICE
+        const SECRET_TOKEN = "admin-token-xyz-12345"; // Another hardcoded secret
+        // ================================================================
+
+        const recipes = {
+            padthai: {
+                name: "ผัดไทย (Pad Thai)",
+                desc: "ก้อยเส้นนุ่มนาน อร่อยกำลังดี",
+                ingredients: [
+                    "เส้นก้อยแห้ง 200 กรัม",
+                    "กุ้งสด 150 กรัม",
+                    "ไข่ 1 ฟอง",
+                    "ก้อง 1 ส่วน",
+                    "ถั่วงอก 1 หม้อ",
+                    "พริกแห้ง 2 เม็ด",
+                    "นำ้ปลา 3 ช้อนโต๊ะ",
+                    "น้ำตาล 2 ช้อนโต๊ะ"
+                ],
+                steps: [
+                    "นึ่งเส้นก้อยให้นุ่ม นำออกมาพักสักครู่",
+                    "ร้อนน้ำมันในกระทะ เคี่ยวหอม แล้วใส่กุ้ง",
+                    "ไข่ลงไปในกระทะ คลุก",
+                    "ใส่เส้นก้อยเหตลงมาคนเคล้า",
+                    "ปรุงรสด้วยน้ำปลา น้ำตาลและพริก",
+                    "สุดท้ายใส่ก้อง ถั่วงอก โยกเบาๆ"
+                ]
+            },
+            gaeng: {
+                name: "แกงแดง (Red Curry)",
+                desc: "แกงเผ็ดร้อน เสบียงอันงาม",
+                ingredients: [
+                    "เนื้อหมู 300 กรัม",
+                    "น้ำมะพร้าว 400 มิลลิลิตร",
+                    "พริกแดงสด 5 เม็ด",
+                    "กระเทียม 3 กลีบ",
+                    "กระชายตัวเล็ก 1 ชิ้น",
+                    "ใบมะกรูด 3 ใบ",
+                    "พริกขี้หนูแดง 3 เม็ด",
+                    "น้ำปลา 2 ช้อนโต๊ะ"
+                ],
+                steps: [
+                    "บดพริกกะเทียมกระชายให้ละเอียด",
+                    "ร้อนน้ำมะพร้าวในหม้อ",
+                    "ใส่เนื้อหมูและน้ำปลา",
+                    "ตั้งไฟแรงปล่อยให้ขาด",
+                    "เติมน้ำแกงให้สม่ำเสมอ",
+                    "ใส่ใบมะกรูด พริกขี้หนู พักสักครู่"
+                ]
+            },
+            somtam: {
+                name: "ส้มตำ (Papaya Salad)",
+                desc: "ชาววิตย์เส้นใย เผ็ดสนั่น",
+                ingredients: [
+                    "ผักกาดสดใหม่ 200 กรัม",
+                    "กล้วย 2-3 เม็ด",
+                    "มะเขือเทศ 3 ลูก",
+                    "พริกแห้ง 3 เม็ด",
+                    "กระเทียม 2 กลีบ",
+                    "พริกขี้หนู 2 เม็ด",
+                    "หมาก 4 ลูก",
+                    "นำ้ปลา 1 ช้อนโต๊ะ",
+                    "น้ำมะนาว 2 ช้อนโต๊ะ"
+                ],
+                steps: [
+                    "บดพริกและกระเทียมในหม้อสำคัญ",
+                    "ใส่หมากลงมา คนเบาๆ",
+                    "เติมผักกาดที่คัดแล้วลงมา",
+                    "ปรุงรสด้วยน้ำปลา น้ำมะนาว",
+                    "ใส่มะเขือเทศกล้วยลงมา คนง่ายๆ",
+                    "ยักษ์ลงจานโดยฉับไว"
+                ]
+            },
+            larb: {
+                name: "ลาบ (Larb)",
+                desc: "เนื้อหมูบดแซ่บ อร่อยกำลังดี",
+                ingredients: [
+                    "เนื้อหมูสด 300 กรัม",
+                    "หน้อย 1 ช้อนโต๊ะ",
+                    "มะนาว 2 ผล",
+                    "น้ำปลา 2 ช้อนโต๊ะ",
+                    "พริกป่น 1 ช้อนชา",
+                    "หอม 2 ต้น",
+                    "ผักชี 1 มัด",
+                    "ขิง 1 ชิ้นเล็ก"
+                ],
+                steps: [
+                    "ยิงเนื้อหมูในกระทะ บดให้ละเอียด",
+                    "เติมน้ำปลาและปรุงรส",
+                    "ผสมหน้อยและพริกป่น",
+                    "ตั้งไฟค่อนข้างแรง อบจนแห้ง",
+                    "ใส่หอมผักชีขิงลงมา คนเบา",
+                    "สดลงจาน เสิร์ฟเร็วๆ"
+                ]
+            },
+            panang: {
+                name: "แกงพะแนง (Panang Curry)",
+                desc: "แกงหวานกลมกล่อม นุ่มหนุ่มสวย",
+                ingredients: [
+                    "หนังไก่ 300 กรัม",
+                    "น้ำมะพร้าว 400 มิลลิลิตร",
+                    "พาสต้าพะแนง 3 ช้อนโต๊ะ",
+                    "ใบมะกรูด 2 ใบ",
+                    "น้ำตาล 1 ช้อนโต๊ะ",
+                    "น้ำปลา 2 ช้อนโต๊ะ",
+                    "หญ้าหวาน 3 ลำ"
+                ],
+                steps: [
+                    "ร้อนน้ำมะพร้าวแล้วใส่พาสต้า",
+                    "เคี่ยวจนหอม ใส่ไก่",
+                    "ปรุงรสด้วยน้ำตาล น้ำปลา",
+                    "ยกลงตัวต่ำ คอยดูเอา",
+                    "ใส่ใบมะกรูดหญ้าหวาน พักสักครู่"
+                ]
+            },
+            massaman: {
+                name: "แกงมัสมั่น (Massaman Curry)",
+                desc: "แกงหวานริมหวาน ผสมรสเข้มข้น",
+                ingredients: [
+                    "เนื้อวัว 300 กรัม",
+                    "น้ำมะพร้าว 400 มิลลิลิตร",
+                    "มันฝรั่ง 200 กรัม",
+                    "หอมหลวง 100 กรัม",
+                    "พาสต้ามัสมั่น 3 ช้อนโต๊ะ",
+                    "นำ้ปลา 2 ช้อนโต๊ะ",
+                    "น้ำตาล 1 ช้อนโต๊ะ",
+                    "กะลำไย 2 ช้อนโต๊ะ"
+                ],
+                steps: [
+                    "ตัดเนื้อวัวเป็นชิ้นพอดี",
+                    "ร้อนน้ำมะพร้าว ใส่พาสต้า",
+                    "ทรมชวเนื้อหลังจากหอมพอ",
+                    "เติมเนื้อ มันฝรั่ง หอมหลวง",
+                    "ปรุงรส ยกไปเชื่อม",
+                    "เคี่ยวจนเนื้อนุ่ม ใส่กะลำไย"
+                ]
+            },
+            khao: {
+                name: "ข้าวเหนียว (Sticky Rice)",
+                desc: "ข้าวที่เหนียวนุ่ม คู่กับแกง",
+                ingredients: [
+                    "ข้าวเหนียว 200 กรัม",
+                    "น้ำมะพร้าว 200 มิลลิลิตร",
+                    "น้ำตาล 2 ช้อนโต๊ะ",
+                    "เกลือ 1 ช้อนชา"
+                ],
+                steps: [
+                    "แช่ข้าวเหนียวข้ามคืน",
+                    "นึ่งข้าวเหนียวแล้วราด",
+                    "ผสมน้ำมะพร้าว น้ำตาล เกลือ",
+                    "ยกไปตั้งไฟเคี่ยว",
+                    "ราดข้าวที่นึ่งเสร็จแล้ว"
+                ]
+            },
+            satay: {
+                name: "สะเต๊ะ (Satay)",
+                desc: "หนังไก่ย่างหมักเครื่องแกง สูตรหรือ",
+                ingredients: [
+                    "หนังไก่ 300 กรัม",
+                    "นำ้มะพร้าว 100 มิลลิลิตร",
+                    "แกงแดง 2 ช้อนโต๊ะ",
+                    "น้ำตาล 1 ช้อนโต๊ะ",
+                    "น้ำปลา 1 ช้อนโต๊ะ",
+                    "หญ้าหวาน 2 ลำ",
+                    "ไม้เสียบหนังไก่"
+                ],
+                steps: [
+                    "หมักหนังไก่ด้วยเครื่องแกง",
+                    "เสียบลงไม้ และวางเรียง",
+                    "ย่างจนสุก หมุนเพื่อให้เข้ม",
+                    "ทำน้ำจิ้มจากพาสต้า",
+                    "ราดน้ำจิ้มลงสะเต๊ะ"
+                ]
+            },
+            tom: {
+                name: "ต้มยำกุ้ง (Tom Yum Prawn)",
+                desc: "น้ำซุปเผ็ดร้อน กุ้งแน่นๆ",
+                ingredients: [
+                    "กุ้งสด 200 กรัม",
+                    "น้ำ 1 ลิตร",
+                    "หญ้าหวาน 3 ลำ",
+                    "ใบมะกรูด 5 ใบ",
+                    "พริกแดงสด 3 เม็ด",
+                    "กระเทียม 3 กลีบ",
+                    "เห็ดหอม 100 กรัม",
+                    "มะเขือเทศ 2 ลูก",
+                    "นำ้ปลา 3 ช้อนโต๊ะ",
+                    "น้ำมะนาว 2 ช้อนโต๊ะ"
+                ],
+                steps: [
+                    "ต้มน้ำให้เดือด",
+                    "ใส่หญ้าหวาน ใบมะกรูด เห็ด",
+                    "เคี่ยวสักครู่เพื่อให้หอม",
+                    "ใส่กุ้ง และรอให้สุก",
+                    "ปรุงรสด้วยน้ำปลา มะนาว",
+                    "ใส่พริก มะเขือเทศ พักสักครู่"
+                ]
+            },
+            pla: {
+                name: "ปลากระพงทอดน้ำปลา (Fried Fish)",
+                desc: "ปลาทอดสีเหลืองทอง กรอบนอก นุ่มใน",
+                ingredients: [
+                    "ปลากระพง 1 ตัว (250-300กรัม)",
+                    "น้ำมัน 1 ลิตร (สำหรับทอด)",
+                    "น้ำปลา 3 ช้อนโต๊ะ",
+                    "น้ำตาล 1 ช้อนโต๊ะ",
+                    "กระเทียม 5 กลีบ",
+                    "พริกแห้ง 2 เม็ด",
+                    "นำ้มะนาว 1 ผล"
+                ],
+                steps: [
+                    "ล้างปลาแล้วเช็ดให้แห้ง",
+                    "ช่อปลาข้างในเพื่อระบายของเหลว",
+                    "ร้อนน้ำมัน ลดอุณหภูมิก่อนใส่ปลา",
+                    "ทอดปลาจนสีทองเหลือง",
+                    "บดพริก กระเทียม ทำน้ำจิ้ม",
+                    "ราดน้ำจิ้มลงปลา เสิร์ฟร้อนๆ"
+                ]
+            },
+            salad: {
+                name: "สลัดไก่ (Chicken Salad)",
+                desc: "หนังไก่ต้มเยือกเย็น กับสมุนไพร",
+                ingredients: [
+                    "หนังไก่ 300 กรัม",
+                    "หญ้าหวาน 2 ลำ",
+                    "มะนาว 2 ผล",
+                    "น้ำปลา 2 ช้อนโต๊ะ",
+                    "นำ้ผึ้ง 1 ช้อนโต๊ะ",
+                    "พริกแห้ง 1 ช้อนชา",
+                    "ผักชี 1 มัด",
+                    "ครอบขาว 50 กรัม"
+                ],
+                steps: [
+                    "ต้มหนังไก่ให้สุก เช็ดเย็น",
+                    "ฉีกหนังไก่เป็นชิ้นเล็ก",
+                    "บดพริกแห้งให้ละเอียด",
+                    "ผสมหนังไก่ หญ้าหวาน ผักชี",
+                    "ราดน้ำจากมะนาว น้ำปลา นำ้ผึ้ง",
+                    "โยกเบาๆ ใส่ครอบขาว เสิร์ฟเย็น"
+                ]
+            },
+            pad: {
+                name: "ผัดเพื่อเนื่อง (Stir Fry)",
+                desc: "ผัดเหลืองทอง อาหารว่างประจำวัน",
+                ingredients: [
+                    "เนื้อหมูสับ 200 กรัม",
+                    "นำ้มันพืช 2 ช้อนโต๊ะ",
+                    "กระเทียม 4 กลีบ",
+                    "พริกแห้ง 2 เม็ด",
+                    "พืช 200 กรัม",
+                    "น้ำปลา 2 ช้อนโต๊ะ",
+                    "น้ำตาล 1 ช้อนชา"
+                ],
+                steps: [
+                    "ร้อนน้ำมันในกระทะ",
+                    "เคี่ยวกระเทียม พริกแห้ง",
+                    "ใส่เนื้อหมูบด คนให้ร่วน",
+                    "ใส่พืชต่างๆ ผัดจนเกือบสุก",
+                    "ปรุงรสด้วยน้ำปลา น้ำตาล",
+                    "พักสักครู่แล้วติดจาน"
+                ]
+            },
+            kheng: {
+                name: "แขง (Sweet Dessert)",
+                desc: "ของหวานเหนียว หวานบ้านๆ",
+                ingredients: [
+                    "แป้งเหนียว 200 กรัม",
+                    "น้ำตาล 100 กรัม",
+                    "นำ้มะพร้าว 200 มิลลิลิตร",
+                    "เกลือ 1 ช้อนชา",
+                    "ส้ม 2 ลูก"
+                ],
+                steps: [
+                    "นวดแป้งเหนียว น้ำตาล เกลือ",
+                    "เทน้ำมะพร้าวไปทยาว",
+                    "นวดจนเข้ากัน",
+                    "ปั้นเป็นลูกบอล",
+                    "ต้มในน้ำเกลือ จนลอยขึ้น"
+                ]
+            },
+            nam: {
+                name: "น้ำพริก (Chili Paste)",
+                desc: "เครื่องเคียว เสบียงอันงาม",
+                ingredients: [
+                    "พริกแห้ง 100 กรัม",
+                    "กระเทียม 30 กลีบ",
+                    "กุ้งแห้ง 3 ช้อนโต๊ะ",
+                    "นำ้ปลา 3 ช้อนโต๊ะ",
+                    "นำ้มะนาว 2 ช้อนโต๊ะ",
+                    "หญ้าหวาน 2 ลำ"
+                ],
+                steps: [
+                    "แช่พริกแห้งให้นุ่ม",
+                    "บดพริก กระเทียม กุ้งแห้ง",
+                    "ใส่นำ้ปลา นำ้มะนาว",
+                    "บดต่อจนหลวมเข้ากัน",
+                    "ใส่หญ้าหวาน บดเบาๆ"
+                ]
+            }
+        };
+
+        // Show/hide recipe when selected
+        document.getElementById('recipeSelect').addEventListener('change', function(e) {
+            const selected = e.target.value;
+            if (selected) {
+                displayRecipe(selected);
+                document.getElementById('recipeContainer').classList.add('show');
+                document.getElementById('vulnNote').style.display = 'block';
+            } else {
+                document.getElementById('recipeContainer').classList.remove('show');
+                document.getElementById('vulnNote').style.display = 'none';
+            }
+        });
+
+        function displayRecipe(key) {
+            const recipe = recipes[key];
+            document.getElementById('recipeName').textContent = recipe.name;
+            document.getElementById('recipeDesc').textContent = recipe.desc;
+
+            // Display ingredients
+            const ingredientsList = document.getElementById('ingredientsList');
+            ingredientsList.innerHTML = '';
+            recipe.ingredients.forEach(ing => {
+                const li = document.createElement('li');
+                li.textContent = ing;
+                ingredientsList.appendChild(li);
+            });
+
+            // Display steps
+            const stepsList = document.getElementById('stepsList');
+            stepsList.innerHTML = '';
+            recipe.steps.forEach((step, index) => {
+                const li = document.createElement('li');
+                li.textContent = step;
+                stepsList.appendChild(li);
+            });
+
+            loadComments(key);
+        }
+
+        // ========== VULNERABILITY #2: XSS (Cross-Site Scripting) ==========
+        // ⚠️ User input NOT sanitized - innerHTML allows script injection
+        // AWS Security Agent should detect: Unsanitized user input to DOM
+        // Example attack: <img src=x onerror="alert('XSS')">
+        // ===================================================================
+        function saveComment() {
+            const commentInput = document.getElementById('userComment');
+            const commentText = commentInput.value.trim();
+
+            if (commentText === '') {
+                alert('กรุณาพิมพ์ความเห็นของคุณ');
+                return;
+            }
+
+            const selected = document.getElementById('recipeSelect').value;
+            if (!selected) {
+                alert('กรุณาเลือกสูตรก่อน');
+                return;
+            }
+
+            // Get existing comments from localStorage
+            const commentsKey = 'comments_' + selected;
+            let comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+
+            // Store comment (basic info without validation)
+            comments.push({
+                text: commentText,
+                timestamp: new Date().toLocaleString('th-TH')
+            });
+
+            localStorage.setItem(commentsKey, JSON.stringify(comments));
+            commentInput.value = '';
+            loadComments(selected);
+        }
+
+        function loadComments(recipeKey) {
+            const commentsKey = 'comments_' + recipeKey;
+            const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+            const commentsDisplay = document.getElementById('commentsDisplay');
+
+            commentsDisplay.innerHTML = '';
+
+            if (comments.length === 0) {
+                commentsDisplay.innerHTML = '<p style="color: #999;">ยังไม่มีความเห็น</p>';
+                return;
+            }
+
+            comments.forEach((comment, index) => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment-display';
+
+                // ⚠️ XSS VULNERABILITY: innerHTML without sanitization
+                // If user input contains <script> or event handlers, it will execute
+                commentDiv.innerHTML = `
+                    <strong>ผู้แสดงความเห็นที่ ${index + 1}:</strong><br>
+                    <span>${comment.text}</span><br>
+                    <small style="color: #999;">${comment.timestamp}</small>
+                `;
+
+                commentsDisplay.appendChild(commentDiv);
+            });
+        }
+
+        // ========== ADDITIONAL: Hardcoded data in code ==========
+        // These constants appear in network inspection and source code
+        // AWS Security Agent should flag these in code review
+        const USER_ID = "admin-123";
+        const DB_PASSWORD = "MySecurePassword123!@#";
+        const ADMIN_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // JWT-like token
+        // ========================================================
+    </script>
+</body>
+</html>
